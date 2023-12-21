@@ -1,0 +1,33 @@
+{
+    "name": "fabricio872/php-lombok",
+    "description": "Adaptation of java lombok for php using php-compiler",
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "alpha",
+    "autoload": {
+        "psr-4": {
+            "Fabricio872\\PhpLombok\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Fabricio Jakubec"
+        }
+    ],
+    "require": {
+        "fabricio872/php-compiler": "@dev"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^7.0"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../php-compiler",
+            "options": {
+                "symlink": false,
+                "copy": true
+            }
+        }
+    ]
+}

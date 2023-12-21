@@ -1,0 +1,8 @@
+{
+    "autoload": {
+        "Fabricio872\\PhpLombok\\": "src/"
+    },
+    "rules": [
+        "Fabricio872\\PhpLombok\\GetterRule"
+    ]
+}

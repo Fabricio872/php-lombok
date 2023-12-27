@@ -49,7 +49,7 @@ class GetterRule implements RuleInterface
             $gettersString .= $this->generateGetter($propertyToGenerate);
         }
 
-        return $classData->beforeLast('}')->append($gettersString)->append("\n}\n");
+        return $classData->beforeLast('}')->append($gettersString)->append("}\n");
     }
 
     /**
@@ -73,12 +73,14 @@ class GetterRule implements RuleInterface
 
         return sprintf(
             <<<GETTER
-    public function get%s()%s 
+
+    public function get%s()%s
     {
         return \$this->%s;
     }
+
 GETTER
-            , $name, $type, $name
+            , s($name)->title(), $type, $name
         );
     }
 }

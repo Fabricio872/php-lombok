@@ -3,6 +3,7 @@
         "Fabricio872\\PhpLombok\\": "src/"
     },
     "rules": [
-        "Fabricio872\\PhpLombok\\GetterRule"
+        "Fabricio872\\PhpLombok\\GetterRule",
+        "Fabricio872\\PhpLombok\\SetterRule"
     ]
 }

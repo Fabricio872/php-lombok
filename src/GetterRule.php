@@ -40,12 +40,12 @@ class GetterRule implements RuleInterface
 
         foreach ($reflection->getProperties() as $property) {
             if ($this->isAttributeCorrect($property->getAttributes())) {
-                // Todo: apply property rules
+                $propertiesToGenerate[] = $property;
             }
         }
         $gettersString = "";
 
-        foreach ($propertiesToGenerate as $propertyToGenerate){
+        foreach (array_unique($propertiesToGenerate) as $propertyToGenerate) {
             $gettersString .= $this->generateGetter($propertyToGenerate);
         }
 

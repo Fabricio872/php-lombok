@@ -61,7 +61,11 @@ class GetterRule extends AbstractRule
     private function generateGetter(ReflectionProperty $property): string
     {
         $name = $property->getName();
-        $type = $property->getType() ? sprintf(': %s', $property->getType()->getName()) : '';
+        $type = $property->getType() ? sprintf(
+            ': %s%s',
+            $property->getType()->allowsNull()? '?' : '',
+            $property->getType()->getName()
+        ) : '';
 
         return sprintf(
             <<<GETTER

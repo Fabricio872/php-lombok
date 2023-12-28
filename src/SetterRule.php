@@ -2,28 +2,25 @@
 
 namespace Fabricio872\PhpLombok;
 
-use Attribute;
-use Fabricio872\PhpCompiler\Rules\RuleInterface;
-use Fabricio872\PhpLombok\Attributes\Getter;
+use Fabricio872\PhpLombok\Attributes\NoSetter;
 use Fabricio872\PhpLombok\Attributes\Setter;
 use Override;
-use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
 use function Symfony\Component\String\s;
 
-class SetterRule implements RuleInterface
+class SetterRule extends AbstractRule
 {
 
     #[Override]
     public function isApplicable(ReflectionClass $reflection): bool
     {
-        if ($this->isAttribute($reflection->getAttributes())) {
+        if ($this->hasAttribute($reflection->getAttributes(), Setter::class)) {
             return true;
         }
 
         foreach ($reflection->getProperties() as $property) {
-            if ($this->isAttribute($property->getAttributes())) {
+            if ($this->hasAttribute($property->getAttributes(), Setter::class)) {
                 return true;
             }
         }
@@ -37,12 +34,12 @@ class SetterRule implements RuleInterface
         $classData = s($classData);
         /** @var array<int, ReflectionProperty> $propertiesToGenerate */
         $propertiesToGenerate = [];
-        if ($classAttribute = $this->isAttribute($reflection->getAttributes())) {
+        if ($classAttribute = $this->hasAttribute($reflection->getAttributes(), Setter::class)) {
             $propertiesToGenerate = $reflection->getProperties();
         }
 
         foreach ($reflection->getProperties() as $property) {
-            if ($this->isAttribute($property->getAttributes())) {
+            if ($this->hasAttribute($property->getAttributes(), Setter::class)) {
                 $propertiesToGenerate[] = $property;
             }
         }
@@ -50,27 +47,24 @@ class SetterRule implements RuleInterface
 
         /** @var ReflectionProperty $propertyToGenerate */
         foreach (array_unique($propertiesToGenerate) as $propertyToGenerate) {
-            $gettersString .= $this->generateSetter(
-                $propertyToGenerate,
-                $this->isAttribute($propertyToGenerate->getAttributes()) ? $this->isAttribute($propertyToGenerate->getAttributes())->isFluent : $classAttribute->isFluent
-            );
+            if (
+                !$this->getterExists($reflection, $propertyToGenerate) &&
+                !$this->hasAttribute($propertyToGenerate->getAttributes(), NoSetter::class)
+            ) {
+                $gettersString .= $this->generateSetter(
+                    $propertyToGenerate,
+                    $this->hasAttribute(
+                        $propertyToGenerate->getAttributes(),
+                        Setter::class
+                    ) ? $this->hasAttribute(
+                        $propertyToGenerate->getAttributes(),
+                        Setter::class
+                    )->isFluent : $classAttribute->isFluent
+                );
+            }
         }
 
         return $classData->beforeLast('}')->append($gettersString)->append("}\n");
-    }
-
-    /**
-     * @param array<int, ReflectionAttribute> $attributes
-     * @return false|Setter
-     */
-    private function isAttribute(array $attributes): false|Setter
-    {
-        foreach ($attributes as $attribute) {
-            if ($attribute->getName() == Setter::class) {
-                return $attribute->newInstance();
-            }
-        }
-        return false;
     }
 
     private function generateSetter(ReflectionProperty $property, bool $isFluent): string

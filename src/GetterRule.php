@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace Fabricio872\PhpLombok;
 
 use Fabricio872\PhpCompiler\Rules\RuleInterface;
 use Fabricio872\PhpLombok\Attributes\Getter;
+use Fabricio872\PhpLombok\Attributes\NoGetter;
 use Override;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -16,12 +18,12 @@ class GetterRule implements RuleInterface
     #[Override]
     public function isApplicable(ReflectionClass $reflection): bool
     {
-        if ($this->isAttributeCorrect($reflection->getAttributes())) {
+        if ($this->hasAttribute($reflection->getAttributes())) {
             return true;
         }
 
         foreach ($reflection->getProperties() as $property) {
-            if ($this->isAttributeCorrect($property->getAttributes())) {
+            if ($this->hasAttribute($property->getAttributes())) {
                 return true;
             }
         }
@@ -34,32 +36,38 @@ class GetterRule implements RuleInterface
     {
         $classData = s($classData);
         $propertiesToGenerate = [];
-        if ($this->isAttributeCorrect($reflection->getAttributes())) {
+        if ($this->hasAttribute($reflection->getAttributes())) {
             $propertiesToGenerate = $reflection->getProperties();
         }
 
         foreach ($reflection->getProperties() as $property) {
-            if ($this->isAttributeCorrect($property->getAttributes())) {
+            if ($this->hasAttribute($property->getAttributes())) {
                 $propertiesToGenerate[] = $property;
             }
         }
         $gettersString = "";
 
+        /** @var ReflectionProperty $propertyToGenerate */
         foreach (array_unique($propertiesToGenerate) as $propertyToGenerate) {
-            $gettersString .= $this->generateGetter($propertyToGenerate);
+            if (
+                !$this->getterExists($reflection, $propertyToGenerate) &&
+                !$this->hasAttribute($propertyToGenerate->getAttributes(), NoGetter::class)
+            ) {
+                $gettersString .= $this->generateGetter($propertyToGenerate);
+            }
         }
 
-        return $classData->beforeLast('}')->append($gettersString)->append("}\n");
+        return $classData->beforeLast('}')->append($gettersString)->append("}\n")->toString();
     }
 
     /**
      * @param array<int, ReflectionAttribute> $attributes
      * @return bool
      */
-    private function isAttributeCorrect(array $attributes)
+    private function hasAttribute(array $attributes, string $attributeClass = Getter::class)
     {
         foreach ($attributes as $attribute) {
-            if ($attribute->getName() == Getter::class) {
+            if ($attribute->getName() == $attributeClass) {
                 return true;
             }
         }
@@ -82,5 +90,10 @@ class GetterRule implements RuleInterface
 GETTER
             , s($name)->title(), $type, $name
         );
+    }
+
+    private function getterExists(ReflectionClass $class, ReflectionProperty $property): bool
+    {
+        return $class->hasMethod(sprintf("get%s", s($property->getName())->title()));
     }
 }

@@ -24,9 +24,4 @@ abstract class AbstractRule implements RuleInterface
         }
         return false;
     }
-
-    protected function getterExists(ReflectionClass $class, ReflectionProperty $property): bool
-    {
-        return $class->hasMethod(sprintf("get%s", s($property->getName())->title()));
-    }
 }

@@ -79,4 +79,9 @@ GETTER
             , s($name)->title(), $type, $name
         );
     }
+
+    private function getterExists(ReflectionClass $class, ReflectionProperty $property): bool
+    {
+        return $class->hasMethod(sprintf("get%s", s($property->getName())->title()));
+    }
 }

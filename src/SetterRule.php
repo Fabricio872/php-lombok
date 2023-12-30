@@ -43,15 +43,15 @@ class SetterRule extends AbstractRule
                 $propertiesToGenerate[] = $property;
             }
         }
-        $gettersString = "";
+        $setterString = "";
 
         /** @var ReflectionProperty $propertyToGenerate */
         foreach (array_unique($propertiesToGenerate) as $propertyToGenerate) {
             if (
-                !$this->getterExists($reflection, $propertyToGenerate) &&
+                !$this->setterExists($reflection, $propertyToGenerate) &&
                 !$this->hasAttribute($propertyToGenerate->getAttributes(), NoSetter::class)
             ) {
-                $gettersString .= $this->generateSetter(
+                $setterString .= $this->generateSetter(
                     $propertyToGenerate,
                     $this->hasAttribute(
                         $propertyToGenerate->getAttributes(),
@@ -64,7 +64,7 @@ class SetterRule extends AbstractRule
             }
         }
 
-        return $classData->beforeLast('}')->append($gettersString)->append("}\n");
+        return $classData->beforeLast('}')->append($setterString)->append("}\n");
     }
 
     private function generateSetter(ReflectionProperty $property, bool $isFluent): string
@@ -99,5 +99,10 @@ SETTER_FLUENT
                 , s($name)->title(), $type, $name, $name, $name
             );
         }
+    }
+
+    private function setterExists(ReflectionClass $class, ReflectionProperty $property): bool
+    {
+        return $class->hasMethod(sprintf("set%s", s($property->getName())->title()));
     }
 }
